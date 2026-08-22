@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/cache/*.parquet
+data/cache/espn_history_*.parquet
+data/players_prev.csv
+out/draft_*.json
+out/*.log
+models/*.pkl
+.DS_Store

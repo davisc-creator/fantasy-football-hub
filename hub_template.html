@@ -1,0 +1,64 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Fantasy Football Hub 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="FF Hub">
+<meta name="theme-color" content="#0f1217"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon.svg">
+<style>
+:root{--bg:#0f1217;--panel:#171c24;--line:#2a3240;--fg:#e6e9ef;--mut:#8a94a6;--acc:#4f8cff;--good:#35c46a;--warn:#f0b429;--bad:#ef5a5a;
+--QB:#d65db1;--RB:#35c46a;--WR:#4f8cff;--TE:#f0b429;--K:#9aa4b5;--DST:#9aa4b5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.4 -apple-system,Inter,Segoe UI,sans-serif}
+header{display:flex;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header b{font-size:16px}.m{color:var(--mut)}.g{color:var(--good)}.w{color:var(--warn)}.b{color:var(--bad)}
+.tabs button{background:#232a36;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+main{padding:14px 16px;display:grid;gap:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto}
+.box h3{margin:0;padding:9px 12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+table{border-collapse:collapse;width:100%}th{font-weight:500;color:var(--mut);text-align:left;padding:5px 8px;font-size:11px;cursor:pointer;white-space:nowrap}
+td{padding:4px 8px;border-top:1px solid #1f2530;white-space:nowrap}tr:hover td{background:#1f2734}
+.num{text-align:right;font-variant-numeric:tabular-nums}.pos{font-weight:700;padding:1px 5px;border-radius:4px;font-size:11px;color:#0f1217}
+.QB{background:var(--QB)}.RB{background:var(--RB)}.WR{background:var(--WR)}.TE{background:var(--TE)}.K{background:var(--K)}.DST{background:var(--DST)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.tier1 td:first-child{border-left:3px solid #fff}.tier2 td:first-child{border-left:3px solid #4f8cff}.tier3 td:first-child{border-left:3px solid #35c46a}.tier4 td:first-child{border-left:3px solid #f0b429}
+.me td{background:#14301f}.kpi{display:flex;gap:22px;padding:10px 12px;flex-wrap:wrap}.kpi div b{display:block;font-size:20px}.kpi div{color:var(--mut);font-size:11px}
+input,select{background:#232a36;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit}
+p.note{margin:0;padding:8px 12px;color:var(--mut);font-size:12px}
+@media (max-width:800px){body{font-size:12px}header{padding:8px 10px;gap:8px}header b{font-size:14px}.tabs button{padding:6px 9px}#vtabs{margin-left:0!important;width:100%;overflow-x:auto;white-space:nowrap;display:flex}main{padding:8px}.grid2,.grid3{grid-template-columns:1fr}td,th{padding:5px 6px}.kpi{gap:14px}.kpi div b{font-size:17px}}
+header{padding-top:max(10px,env(safe-area-inset-top))}
+</style></head><body>
+<header><b>Fantasy Football Hub 2026</b><span class="m" id="built"></span><span class="tabs" id="ltabs"></span><span class="tabs" id="vtabs" style="margin-left:auto"></span></header>
+<main id="main"></main>
+<script>
+/*__DATA__*/
+let L=Object.keys(DATA.leagues)[0], V='draft', sortKey=null, sortDir=-1, posF='ALL', q='';
+const $=s=>document.querySelector(s); const f0=v=>v==null?'–':Math.round(v); const f1=v=>v==null?'–':(+v).toFixed(1);
+const P=p=>`<span class="pos ${p}">${p}</span>`;
+function tabs(){const lt=$('#ltabs');lt.innerHTML='';for(const k in DATA.leagues){const b=document.createElement('button');b.textContent=DATA.leagues[k].name+` (${DATA.leagues[k].teams})`;b.classList.toggle('on',k===L);b.onclick=()=>{L=k;render()};lt.appendChild(b)}
+ const vt=$('#vtabs');vt.innerHTML='';[['draft','Draft cheat sheet'],['team','My team'],['waivers','Waivers'],['trades','Trades'],['league','League'],['model','Model']].forEach(([k,n])=>{const b=document.createElement('button');b.textContent=n;b.classList.toggle('on',k===V);b.onclick=()=>{V=k;sortKey=null;render()};vt.appendChild(b)})}
+function table(rows,cols,opts={}){if(!rows||!rows.length)return '<p class="note">nothing here yet</p>';
+ if(sortKey&&cols.find(c=>c.k===sortKey)){rows=rows.slice().sort((a,b)=>((a[sortKey]??-1e9)>(b[sortKey]??-1e9)?1:-1)*sortDir)}
+ return `<table><thead><tr>${cols.map(c=>`<th onclick="srt('${c.k}')" class="${c.n?'num':''}">${c.h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr class="${opts.cls?opts.cls(r):''}">${cols.map(c=>`<td class="${c.n?'num':''}">${c.f?c.f(r[c.k],r):(r[c.k]??'–')}</td>`).join('')}</tr>`).join('')}</tbody></table>`}
+function srt(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1}render()}
+const injury=v=>!v||v==='ACTIVE'?'':`<span class="b">${v[0]}</span>`;
+function render(){tabs();$('#built').textContent='built '+DATA.built;const d=DATA.leagues[L];let h='';
+ if(V==='draft'){let rows=d.cheat.filter(r=>posF==='ALL'||r.pos===posF).filter(r=>!q||r.name.toLowerCase().includes(q));
+  h+=`<div class="box"><h3>Cheat sheet · ${d.name}${d.draft_date?' · draft '+d.draft_date:''} <span class="tabs">${['ALL','QB','RB','WR','TE','K','DST'].map(p=>`<button class="${p===posF?'on':''}" onclick="posF='${p}';render()">${p}</button>`).join('')}</span><input placeholder="search" value="${q}" oninput="q=this.value.toLowerCase();render()"></h3>
+  <p class="note">Proj = ML expected points (injury risk priced in) · VORP = proj − positional baseline (${Object.entries(d.base).map(([k,v])=>k+' '+Math.round(v)).join(', ')}) · Tier = gap-based within position · ADP = ESPN this year · ECR = FantasyPros consensus.</p>
+  ${table(rows,[{k:'name',h:'Player',f:(v,r)=>v+' '+injury(r.injury)},{k:'pos',h:'',f:P},{k:'nfl',h:'Tm'},{k:'pos_rank',h:'Rk',n:1},{k:'tier',h:'Tier',n:1},{k:'bye',h:'Bye',n:1,f:f0},{k:'proj',h:'Proj',n:1,f:f0},{k:'floor',h:'Floor',n:1,f:f0},{k:'ceiling',h:'Ceil',n:1,f:f0},{k:'games',h:'Gms',n:1,f:f1},{k:'vorp',h:'VORP',n:1,f:f0},{k:'adp',h:'ADP',n:1,f:f1},{k:'fp_ecr',h:'ECR',n:1,f:f1},{k:'espn_proj_s',h:'ESPN',n:1,f:f0},{k:'ml_pts',h:'ML',n:1,f:f0},{k:'age',h:'Age',n:1,f:f0}],{cls:r=>'tier'+Math.min(r.tier,4)})}</div>`}
+ else if(!d.lineup){h+=`<div class="box"><p class="note">${d.season_error?'Error: '+d.season_error:'No rosters yet — this league has not drafted. Use the Draft cheat sheet, or run the live draft room: <code>python run.py draft '+d.key+'</code>'}</p></div>`}
+ else if(V==='team'){const st=d.lineup.filter(r=>r.slot!=='BN'),bn=d.lineup.filter(r=>r.slot==='BN');const me=d.power.find(p=>p.team_id===d.my_team_id);const rk=d.power.findIndex(p=>p.team_id===d.my_team_id)+1;
+  h+=`<div class="box"><div class="kpi"><div><b>${rk}<span class="m" style="font-size:12px">/${d.power.length}</span></b>power rank</div><div><b>${f0(me.value)}</b>rest-of-season value</div><div><b>${f0(st.reduce((a,r)=>a+r.wk_pts,0))}</b>week ${d.week} projected</div><div><b>${me.QB}</b>QB</div><div><b>${me.RB}</b>RB</div><div><b>${me.WR}</b>WR</div><div><b>${me.TE}</b>TE</div></div></div>
+  <div class="grid2"><div class="box"><h3>Week ${d.week} lineup</h3>${table(st,[{k:'slot',h:'Slot'},{k:'name',h:'Player',f:(v,r)=>v+' '+injury(r.injury)},{k:'pos',h:'',f:P},{k:'nfl',h:'Tm'},{k:'bye',h:'Bye',n:1,f:f0},{k:'wk_pts',h:'Wk pts',n:1,f:f1}])}<h3>Bench</h3>${table(bn,[{k:'name',h:'Player',f:(v,r)=>v+' '+injury(r.injury)},{k:'pos',h:'',f:P},{k:'nfl',h:'Tm'},{k:'bye',h:'Bye',n:1,f:f0},{k:'wk_pts',h:'Wk pts',n:1,f:f1}])}</div>
+  <div class="box"><h3>Cut list (what you lose by dropping him, rest of season)</h3>${table(d.drops,[{k:'name',h:'Player'},{k:'pos',h:'',f:P},{k:'proj',h:'Proj',n:1,f:f0},{k:'drop_cost',h:'Drop cost',n:1,f:f1}])}</div></div>`}
+ else if(V==='waivers'){h+=`<div class="box"><h3>Waiver targets · net rest-of-season gain after the best drop</h3>${table(d.waivers,[{k:'name',h:'Add',f:(v,r)=>v+' '+injury(r.injury)},{k:'pos',h:'',f:P},{k:'nfl',h:'Tm'},{k:'bye',h:'Bye',n:1,f:f0},{k:'proj',h:'Proj',n:1,f:f0},{k:'ceiling',h:'Ceil',n:1,f:f0},{k:'add_value',h:'Value added',n:1,f:f1},{k:'drop',h:'Drop'},{k:'net',h:'Net',n:1,f:(v)=>`<span class="${v>10?'g':v>0?'w':'b'}">${f1(v)}</span>`}])}</div>`}
+ else if(V==='trades'){h+=`<div class="box"><h3>Trade ideas · both teams improve (so they might say yes)</h3>${table(d.trades,[{k:'partner',h:'Partner'},{k:'give',h:'You give'},{k:'get',h:'You get'},{k:'me',h:'You',n:1,f:v=>`<span class="g">+${f1(v)}</span>`},{k:'them',h:'Them',n:1,f:v=>`<span class="${v>=0?'g':'w'}">${v>=0?'+':''}${f1(v)}</span>`}])}</div>`}
+ else if(V==='league'){h+=`<div class="box"><h3>Power rankings (rest-of-season roster value)</h3>${table(d.power,[{k:'team',h:'Team'},{k:'value',h:'Value',n:1,f:f0},{k:'QB',h:'QB',n:1},{k:'RB',h:'RB',n:1},{k:'WR',h:'WR',n:1},{k:'TE',h:'TE',n:1},{k:'n',h:'Roster',n:1}],{cls:r=>r.team_id===d.my_team_id?'me':''})}</div>
+  <div class="grid3">${Object.entries(d.rosters).map(([t,r])=>`<div class="box"><h3>${d.names[t]||'Team '+t}</h3>${table(r,[{k:'name',h:'Player',f:(v,r)=>v+' '+injury(r.injury)},{k:'pos',h:'',f:P},{k:'bye',h:'Bye',n:1,f:f0},{k:'proj',h:'Proj',n:1,f:f0}])}</div>`).join('')}</div>`}
+ if(V==='model'){h=`<div class="box"><h3>How the numbers are made</h3><p class="note">
+ <b>Projections.</b> A gradient-boosted model (scikit-learn HistGradientBoosting) trained on 2018–2025 player-seasons predicts (a) points-per-game relative to ESPN's preseason projection and (b) games played, from ESPN projection + ADP, prior two seasons of usage (targets, carries, air-yard share, EPA), age, experience and draft capital. Leave-one-season-out validation vs ESPN's own projection: MAE 48.7 vs 55.4 (−12%), rank correlation .68 vs .65, better at RB/WR/TE; QB is blended 35/65 toward ESPN. Floor/ceiling are 20th/80th percentile models.<br><br>
+ <b>Roster value.</b> Expected points of the optimal weekly lineup over 18 weeks, with byes, per-player availability (games model), a season-outcome draw per player (so upside has option value), playoff weeks ×1.5 and replacement-level streaming for empty/weak slots.<br><br>
+ <b>Draft engine.</b> Every player has a draft time ~ Normal(ADP, sd) where ADP blends ESPN and FantasyPros ECR; opponents draft the earliest-time available player their roster allows. Survival % = share of simulations in which a player is still there at your next pick. The recommendation simulates the rest of the draft for each candidate and picks the one with the best expected final-roster value.<br><br>
+ <b>Backtest (2024 replay, 10-team, every slot):</b></p>${DATA.backtest?table(DATA.backtest,[{k:'mode',h:'Drafter'},{k:'mean_rank',h:'Avg finish',n:1,f:f1},{k:'mean_score',h:'Avg actual pts',n:1,f:f0},{k:'top3',h:'Top-3 rate',n:1,f:v=>Math.round(v*100)+'%'},{k:'n',h:'Drafts',n:1}]):'<p class="note">running…</p>'}</div>`}
+ $('#main').innerHTML=h}
+render();
+</script></body></html>
